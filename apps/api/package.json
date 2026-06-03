@@ -1,0 +1,30 @@
+{
+  "name": "@ticketing/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run --watch src/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun",
+    "start": "bun run dist/index.js",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "elysia": "^1.2.0",
+    "@elysiajs/jwt": "^1.2.0",
+    "@elysiajs/cors": "^1.2.0",
+    "drizzle-orm": "^0.44.0",
+    "postgres": "^3.4.5",
+    "ioredis": "^5.4.2",
+    "@node-rs/argon2": "^2.0.2",
+    "uuidv7": "^1.0.2"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.30.0",
+    "@types/bun": "latest",
+    "typescript": "^5.0.0"
+  }
+}
