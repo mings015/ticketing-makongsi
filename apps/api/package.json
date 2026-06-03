@@ -13,13 +13,14 @@
     "test": "bun test"
   },
   "dependencies": {
-    "elysia": "^1.2.0",
-    "@elysiajs/jwt": "^1.2.0",
     "@elysiajs/cors": "^1.2.0",
-    "drizzle-orm": "^0.44.0",
-    "postgres": "^3.4.5",
-    "ioredis": "^5.4.2",
+    "@elysiajs/jwt": "^1.2.0",
     "@node-rs/argon2": "^2.0.2",
+    "drizzle-orm": "^0.44.0",
+    "elysia": "^1.2.0",
+    "exceljs": "^4.4.0",
+    "ioredis": "^5.4.2",
+    "postgres": "^3.4.5",
     "uuidv7": "^1.0.2"
   },
   "devDependencies": {

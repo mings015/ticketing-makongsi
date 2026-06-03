@@ -29,10 +29,12 @@
   const isAdminOrAbove = $derived(userRoles.some((r) => ['admin', 'super_admin'].includes(r)));
 
   const navItems = $derived([
-    ...(isAdminOrAbove ? [{ href: '/dashboard', label: 'Dashboard', icon: '📊' }] : []),
+    ...(isAdminOrAbove ? [{ href: '/dashboard',  label: 'Dashboard',  icon: '📊' }] : []),
     { href: '/tickets', label: 'Tickets', icon: '🎫' },
-    ...(isAdminOrAbove ? [{ href: '/users', label: 'Users', icon: '👥' }] : []),
+    ...(isAdminOrAbove ? [{ href: '/users',      label: 'Users',      icon: '👥' }] : []),
     ...(isAdminOrAbove ? [{ href: '/categories', label: 'Categories', icon: '🏷️' }] : []),
+    ...(isAdminOrAbove ? [{ href: '/reports',    label: 'Reports',    icon: '📈' }] : []),
+    ...(isAdminOrAbove ? [{ href: '/audit-logs', label: 'Audit Log',  icon: '📋' }] : []),
   ]);
 
   function getInitials(name: string) {

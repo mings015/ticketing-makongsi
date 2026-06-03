@@ -7,6 +7,8 @@ import { usersRoutes } from './modules/users';
 import { ticketsRoutes } from './modules/tickets';
 import { categoriesRoutes } from './modules/categories';
 import { dashboardRoutes } from './modules/dashboard';
+import { reportsRoutes } from './modules/reports';
+import { auditLogsRoutes } from './modules/audit-logs';
 
 const UPLOADS_DIR = join(process.cwd(), 'uploads');
 
@@ -24,6 +26,8 @@ const app = new Elysia()
   .use(ticketsRoutes)
   .use(categoriesRoutes)
   .use(dashboardRoutes)
+  .use(reportsRoutes)
+  .use(auditLogsRoutes)
   .get('/uploads/:filename', async ({ params, set }) => {
     const file = Bun.file(join(UPLOADS_DIR, params.filename));
     const exists = await file.exists();
