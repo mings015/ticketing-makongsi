@@ -5,10 +5,6 @@ import { dbPlugin } from '../../shared/plugins/db';
 import { authModel } from './auth.model';
 import { AuthService } from './auth.service';
 
-const ACCESS_TOKEN_COOKIE = 'access_token';
-const REFRESH_TOKEN_COOKIE = 'refresh_token';
-const IS_PROD = process.env.NODE_ENV === 'production';
-
 export const authRoutes = new Elysia({ prefix: '/auth' })
   .use(dbPlugin)
   .use(authModel)
@@ -45,7 +41,7 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 
   .post(
     '/login',
-    async ({ body, db, jwt, cookie, request, set }) => {
+    async ({ body, db, jwt, request, set }) => {
       const service = new AuthService(db);
       const ipAddress = request.headers.get('x-forwarded-for') ?? undefined;
       const userAgent = request.headers.get('user-agent') ?? undefined;
@@ -60,25 +56,11 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 
       set.headers['Cache-Control'] = 'no-store';
 
-      cookie[ACCESS_TOKEN_COOKIE].set({
-        value: result.accessToken,
-        httpOnly: true,
-        secure: IS_PROD,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 900,
-      });
-
-      cookie[REFRESH_TOKEN_COOKIE].set({
-        value: result.rawRefreshToken,
-        httpOnly: true,
-        secure: IS_PROD,
-        sameSite: 'lax',
-        path: '/auth/refresh',
-        maxAge: 604800,
-      });
-
-      return { user: result.user };
+      return {
+        user: result.user,
+        accessToken: result.accessToken,
+        refreshToken: result.rawRefreshToken,
+      };
     },
     {
       body: 'auth.login',
@@ -88,14 +70,13 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 
   .post(
     '/refresh',
-    async ({ db, jwt, cookie, request, set }) => {
+    async ({ body, db, jwt, request, set }) => {
       const service = new AuthService(db);
-      const refreshToken = cookie[REFRESH_TOKEN_COOKIE]?.value;
       const ipAddress = request.headers.get('x-forwarded-for') ?? undefined;
       const userAgent = request.headers.get('user-agent') ?? undefined;
 
       const result = await service.refresh({
-        refreshToken: refreshToken ?? '',
+        refreshToken: body.refreshToken,
         ipAddress,
         userAgent,
         signAccessToken: (payload) => jwt.sign(payload),
@@ -103,47 +84,27 @@ export const authRoutes = new Elysia({ prefix: '/auth' })
 
       set.headers['Cache-Control'] = 'no-store';
 
-      cookie[ACCESS_TOKEN_COOKIE].set({
-        value: result.accessToken,
-        httpOnly: true,
-        secure: IS_PROD,
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 900,
-      });
-
-      cookie[REFRESH_TOKEN_COOKIE].set({
-        value: result.rawRefreshToken,
-        httpOnly: true,
-        secure: IS_PROD,
-        sameSite: 'lax',
-        path: '/auth/refresh',
-        maxAge: 604800,
-      });
-
-      return { ok: true as const };
+      return {
+        accessToken: result.accessToken,
+        refreshToken: result.rawRefreshToken,
+      };
     },
     {
+      body: 'auth.refresh',
       response: 'auth.refresh.response',
     },
   )
 
   .post(
     '/logout',
-    async ({ db, cookie, set }) => {
+    async ({ body, db, set }) => {
       const service = new AuthService(db);
-      const refreshToken = cookie[REFRESH_TOKEN_COOKIE]?.value;
-
-      await service.logout(refreshToken);
-
+      await service.logout(body?.refreshToken);
       set.headers['Cache-Control'] = 'no-store';
-
-      cookie[ACCESS_TOKEN_COOKIE].remove();
-      cookie[REFRESH_TOKEN_COOKIE].remove();
-
       return { ok: true as const };
     },
     {
+      body: 'auth.logout',
       response: 'auth.logout.response',
     },
   );

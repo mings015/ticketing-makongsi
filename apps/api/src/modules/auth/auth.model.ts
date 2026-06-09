@@ -13,10 +13,21 @@ export const authModel = new Elysia({ name: 'auth-model' }).model({
       fullName: t.String(),
       roles: t.Array(t.String()),
     }),
+    accessToken: t.String(),
+    refreshToken: t.String(),
+  }),
+
+  'auth.refresh': t.Object({
+    refreshToken: t.String(),
   }),
 
   'auth.refresh.response': t.Object({
-    ok: t.Literal(true),
+    accessToken: t.String(),
+    refreshToken: t.String(),
+  }),
+
+  'auth.logout': t.Object({
+    refreshToken: t.Optional(t.String()),
   }),
 
   'auth.logout.response': t.Object({

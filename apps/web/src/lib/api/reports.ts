@@ -1,4 +1,3 @@
-import { PUBLIC_API_URL } from '$env/static/public';
 import { apiFetch } from './client';
 import type { SlaStats, StaffRow, TicketStats, TrendPoint } from '$lib/types/reports';
 
@@ -45,6 +44,10 @@ export async function getTrends(params: ReportParams = {}, fetchFn?: typeof fetc
 }
 
 export function getExportUrl(type: 'tickets' | 'sla' | 'staff', params: ReportParams = {}) {
-  const qs = buildQuery(params);
-  return `${PUBLIC_API_URL}/reports/${type}/export${qs ? `?${qs}` : ''}`;
+  const q = new URLSearchParams({ type });
+  if (params.dateFrom)   q.set('dateFrom',   params.dateFrom);
+  if (params.dateTo)     q.set('dateTo',     params.dateTo);
+  if (params.categoryId) q.set('categoryId', params.categoryId);
+  if (params.priority)   q.set('priority',   params.priority);
+  return `/exports/reports?${q}`;
 }

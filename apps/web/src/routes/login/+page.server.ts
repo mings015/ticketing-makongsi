@@ -4,7 +4,7 @@ import { PUBLIC_API_URL } from '$env/static/public';
 
 export const load: PageServerLoad = async ({ cookies }) => {
   if (cookies.get('access_token')) {
-    redirect(302, '/users');
+    redirect(302, '/');
   }
 };
 
@@ -29,36 +29,29 @@ export const actions: Actions = {
       return fail(res.status, { error: (body as { error?: string }).error ?? 'Login failed' });
     }
 
-    // Forward Set-Cookie headers from backend manually via SvelteKit cookies API.
-    // Cross-origin server-side fetch does NOT auto-forward Set-Cookie to the browser.
-    const setCookieHeaders: string[] =
-      typeof res.headers.getSetCookie === 'function'
-        ? res.headers.getSetCookie()
-        : [res.headers.get('set-cookie') ?? ''].filter(Boolean);
+    const { accessToken, refreshToken } = await res.json() as {
+      accessToken: string;
+      refreshToken: string;
+    };
 
-    for (const cookieStr of setCookieHeaders) {
-      const parts = cookieStr.split(';').map((p) => p.trim());
+    const IS_PROD = process.env.NODE_ENV === 'production';
 
-      // Split on first '=' only — JWT values contain '=' chars
-      const eqIdx = parts[0].indexOf('=');
-      const name = parts[0].slice(0, eqIdx).trim();
-      const value = parts[0].slice(eqIdx + 1).trim();
+    cookies.set('access_token', accessToken, {
+      path: '/',
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: 'lax',
+      maxAge: 900,
+    });
 
-      const attrs: Record<string, string> = {};
-      for (const part of parts.slice(1)) {
-        const [k, ...v] = part.split('=');
-        attrs[k.toLowerCase().trim()] = v.join('=') ?? 'true';
-      }
+    cookies.set('refresh_token', refreshToken, {
+      path: '/',
+      httpOnly: true,
+      secure: IS_PROD,
+      sameSite: 'lax',
+      maxAge: 604800,
+    });
 
-      cookies.set(name, value, {
-        path: attrs['path'] ?? '/',
-        httpOnly: true,
-        secure: attrs['secure'] === 'true',
-        sameSite: (attrs['samesite'] as 'lax' | 'strict' | 'none') ?? 'lax',
-        maxAge: attrs['max-age'] ? Number(attrs['max-age']) : undefined,
-      });
-    }
-
-    redirect(302, '/users');
+    redirect(302, '/');
   },
 };

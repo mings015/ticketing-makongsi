@@ -13,16 +13,22 @@ export type CurrentUser = {
 
 export const authPlugin = new Elysia({ name: 'auth-plugin' })
   .use(dbPlugin)
+  .error({ UNAUTHORIZED: UnauthorizedError, FORBIDDEN: ForbiddenError })
+  .onError(({ code, error, set }) => {
+    if (code === 'UNAUTHORIZED') { set.status = 401; return { error: error.message }; }
+    if (code === 'FORBIDDEN')    { set.status = 403; return { error: error.message }; }
+  })
   .macro({
     requireAuth: (enabled: boolean) => ({
-      async resolve({ cookie, db, jwt }: {
-        cookie: Record<string, { value: string }>;
+      async resolve({ request, db, jwt }: {
+        request: Request;
         db: typeof import('../database').db;
         jwt: { verify: (token: string) => Promise<Record<string, unknown> | false> };
       }) {
         if (!enabled) return;
 
-        const token = cookie['access_token']?.value;
+        const authHeader = request.headers.get('authorization') ?? '';
+        const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
         if (!token) throw new UnauthorizedError();
 
         const payload = await jwt.verify(token);

@@ -1,4 +1,3 @@
-import { PUBLIC_API_URL } from '$env/static/public';
 import { apiFetch } from './client';
 import type { AuditLogsResponse } from '$lib/types/audit-logs';
 
@@ -36,5 +35,5 @@ export function getAuditExportUrl(params: AuditLogParams = {}) {
   if (params.dateTo)     q.set('dateTo',     params.dateTo);
   if (params.action)     q.set('action',     params.action);
   if (params.search)     q.set('search',     params.search);
-  return `${PUBLIC_API_URL}/audit-logs/export${q.toString() ? `?${q}` : ''}`;
+  return `/exports/audit-logs${q.toString() ? `?${q}` : ''}`;
 }

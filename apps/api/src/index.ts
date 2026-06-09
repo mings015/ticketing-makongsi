@@ -1,7 +1,9 @@
 import { Elysia } from 'elysia';
 import { cors } from '@elysiajs/cors';
+import { swagger } from '@elysiajs/swagger';
 import { join } from 'node:path';
 import { runMigrations } from './shared/database/migrate';
+import { UnauthorizedError, ForbiddenError } from './shared/errors';
 import { authRoutes } from './modules/auth';
 import { usersRoutes } from './modules/users';
 import { ticketsRoutes } from './modules/tickets';
@@ -21,6 +23,33 @@ const app = new Elysia()
       methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     }),
   )
+  .use(
+    swagger({
+      path: '/docs',
+      documentation: {
+        info: {
+          title: 'IT Ticketing API',
+          version: '1.0.0',
+          description: 'REST API untuk IT Ticketing System. Autentikasi menggunakan Bearer JWT token.',
+        },
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: 'http',
+              scheme: 'bearer',
+              bearerFormat: 'JWT',
+            },
+          },
+        },
+        security: [{ bearerAuth: [] }],
+      },
+    }),
+  )
+  .error({ UNAUTHORIZED: UnauthorizedError, FORBIDDEN: ForbiddenError })
+  .onError(({ code, error, set }) => {
+    if (code === 'UNAUTHORIZED') { set.status = 401; return { error: error.message }; }
+    if (code === 'FORBIDDEN')    { set.status = 403; return { error: error.message }; }
+  })
   .use(authRoutes)
   .use(usersRoutes)
   .use(ticketsRoutes)
